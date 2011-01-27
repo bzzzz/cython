@@ -417,7 +417,7 @@ class IterationTransform(Visitor.VisitorTransform):
             error(enumerate_function.pos,
                   "enumerate() requires an iterable argument")
             return node
-        elif len(args) > 1:
+        elif len(args) > 2:
             error(enumerate_function.pos,
                   "enumerate() takes at most 1 argument")
             return node
@@ -436,14 +436,18 @@ class IterationTransform(Visitor.VisitorTransform):
         enumerate_target, iterable_target = targets
         counter_type = enumerate_target.type
 
+        start_value = 0
+        if len(args) == 2:
+            start_value = args[1].constant_result
+
         if not counter_type.is_pyobject and not counter_type.is_int:
             # nothing we can do here, I guess
             return node
 
         temp = UtilNodes.LetRefNode(ExprNodes.IntNode(enumerate_function.pos,
-                                                      value='0',
+                                                      value=str(start_value),
                                                       type=counter_type,
-                                                      constant_result=0))
+                                                      constant_result=start_value))
         inc_expression = ExprNodes.AddNode(
             enumerate_function.pos,
             operand1 = temp,
